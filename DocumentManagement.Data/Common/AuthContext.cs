@@ -1,7 +1,6 @@
-﻿using DocumentManagement.Data.Common;
-using DocumentManagement.Data.Models;
+﻿using DocumentManagement.Data.Models;
 
-namespace DocumentManagement.Data
+namespace DocumentManagement.Data.Common
 {
     public class AuthContext : IAuthContext
     {

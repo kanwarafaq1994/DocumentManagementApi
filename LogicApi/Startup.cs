@@ -19,6 +19,7 @@ using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
 using DocumentManagement.Data.Common;
 using DocumentManagement.Data;
+using DocumentManagement.Data.Security;
 
 namespace LogicAPI
 {
@@ -55,6 +56,7 @@ namespace LogicAPI
 
                 services.AddHttpContextAccessor();
                 services.AddDbContext<DocumentManagement.Data.DocumentManagementContext>(options => options.UseSqlServer(connectionString, x => x.MigrationsAssembly("DocumentManagement.Data")));
+                services.AddScoped<IPasswordHasher, PasswordHasher>();
                 //services.AddScoped<IEmailRepository, EmailRepository>();
                 //services.AddScoped<IUserRepository, UserRepository>();
                 //services.AddScoped<IOrganizationRepository, OrganizationRepository>();
