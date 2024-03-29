@@ -20,6 +20,11 @@ using Newtonsoft.Json;
 using DocumentManagement.Data.Common;
 using DocumentManagement.Data;
 using DocumentManagement.Data.Security;
+using LogicApi.Middlewares;
+using DocumentManagement.Data.Repositories;
+using DocumentManagement.Data.UnitsOfWork;
+using DocumentManagement.Data.Services;
+using LogicApi.ContextHandler;
 
 namespace LogicAPI
 {
@@ -57,6 +62,8 @@ namespace LogicAPI
                 services.AddHttpContextAccessor();
                 services.AddDbContext<DocumentManagement.Data.DocumentManagementContext>(options => options.UseSqlServer(connectionString, x => x.MigrationsAssembly("DocumentManagement.Data")));
                 services.AddScoped<IPasswordHasher, PasswordHasher>();
+                services.AddScoped<IUserRepository, UserRepository>();
+                services.AddScoped<IUnitOfWork, UnitOfWork>();
                 //services.AddScoped<IEmailRepository, EmailRepository>();
                 //services.AddScoped<IUserRepository, UserRepository>();
                 //services.AddScoped<IOrganizationRepository, OrganizationRepository>();
@@ -66,7 +73,7 @@ namespace LogicAPI
                 //services.AddScoped<IExpressionOfInterestInterfaceRepository, ExpressionOfInterestInterfaceRepository>();
                 //services.AddScoped<IBicRepository, BicRepository>();
                 //services.AddScoped<IZipCodeRepository, ZipCodeRepository>();
-                //services.AddScoped<AttachContext>();
+                services.AddScoped<AttachContext>();
                 services.AddScoped<IAuthContext, AuthContext>();
                 services.AddSingleton<HtmlEncoder>(HtmlEncoder.Create(allowedRanges: new[]
                 {
@@ -134,25 +141,22 @@ namespace LogicAPI
 
             //app.UseMiddleware<LoggingMiddleware>();
 
-            //app.UseWhen(context => context.Request.Path.StartsWithSegments("/api")
-            //                       && !(context.Request.RouteValues["controller"].Equals("Account")
-            //                       || context.Request.RouteValues["controller"].Equals("Password")
-            //                       || (context.Request.RouteValues["controller"].Equals("Resource")
-            //                       && context.Request.RouteValues["action"].Equals("GetCurrent"))), applicationBuilder =>
-            //                       {
-            //                           applicationBuilder.UseMiddleware<ActivityMiddleware>();
-            //                       });
-            //var whiteListedEndPoints = Configuration.GetSection("WhiteListedEndPoints:EndPoints").Get<List<string>>();
+            app.UseWhen(context => context.Request.Path.StartsWithSegments("/api")
+                                   && !(context.Request.RouteValues["controller"].Equals("Account")), applicationBuilder =>
+                                   {
+                                       applicationBuilder.UseMiddleware<ActivityMiddleware>();
+                                   });
+            var whiteListedEndPoints = Configuration.GetSection("WhiteListedEndPoints:EndPoints").Get<List<string>>();
             //app.UseWhen(ctx => (ctx.Request.Method == "PUT" || ctx.Request.Method == "POST")
             //                   && !whiteListedEndPoints.Contains(ctx.Request.Path.Value)
             //                   && !(ctx.Request.ContentType?.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0), appBuilder =>
             //                   {
             //                       appBuilder.UseAntiXssMiddleware();
             //                   });
-            //HttpHelper.Configure(app.ApplicationServices.GetRequiredService<IHttpContextAccessor>());
+            ////HttpHelper.Configure(app.ApplicationServices.GetRequiredService<IHttpContextAccessor>());
             app.UseAuthorization();
             app.UseStatusCodePagesWithReExecute("/error/{0}");
-            //app.UseHttpException();
+            app.UseHttpException();
 
             app.UseStaticFiles();
 

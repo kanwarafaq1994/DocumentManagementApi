@@ -5,5 +5,6 @@
         public string Secret { get; set; }
         public string PublicDocumentSecret { get; set; }
         public string appUrl { get; set; }
+        public string FileServerRoot { get; set; }
     }
 }

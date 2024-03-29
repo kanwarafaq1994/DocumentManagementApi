@@ -25,7 +25,9 @@ namespace DocumentManagement.Data.Models
 
         public DateTime UploadTime { get; set; }
 
-        public string DocymentPublicLinkToken { get; set; }
+        public string DocumentPublicLinkToken { get; set; }
+
+        public int NumberOfDownloads { get; set; }
 
         public bool IsExpired { get; set; }
     }
