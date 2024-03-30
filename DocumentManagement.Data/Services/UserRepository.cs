@@ -9,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -80,65 +79,41 @@ namespace DocumentManagement.Data.Services
         public async Task<LoginResponseDto> CreateUserSession(LoginDto loginDto)
         {
             var currentUser = await GetUserByEmail(loginDto.Email);
-
             var loginResponse = new LoginResponseDto();
-            string genericErrorMessage = "E-Mail-Adress and/oder password ist invalid";
-            if (currentUser == null)
-            {
-                loginResponse.Message = genericErrorMessage;
-                return loginResponse;
-            }
 
-            if (!currentUser.IsActive)
+            if (currentUser == null || !currentUser.IsActive)
             {
-                loginResponse.Message = "User is not active";
+                loginResponse.Message = "Invalid email address or password";
                 return loginResponse;
             }
 
             if (await CheckFailedLoginCount(currentUser.Id))
             {
-                loginResponse.Message =
-                    "You cannot log in because your user has been blocked. Please click on Forgot password.";
                 currentUser.IsActive = false;
+                await _context.SaveChangesAsync();
+                loginResponse.Message = "User has been blocked due to too many failed login attempts";
+                return loginResponse;
+            }
 
+            if (_passwordHasher.VerifyPassword(currentUser.PasswordHash, loginDto.Password))
+            {
+                currentUser.FailedLoginCount = 0;
+                currentUser.LastActivity = StaticDateTimeProvider.Now;
                 await _context.SaveChangesAsync();
 
-                return loginResponse;
+                loginResponse.Token = GenerateJwtToken(currentUser);
+                loginResponse.Message = "Login successful";
+                loginResponse.UserId = currentUser.Id;
             }
-
-            try
+            else
             {
-
-                var userDetail = _context.Users
-                    .FirstOrDefault(u => u.Email == loginDto.Email);
-
-                if (userDetail != null && _passwordHasher.VerifyPassword(userDetail.PasswordHash, loginDto.Password))
-                {
-                    loginResponse.Token = GenerateJwtToken(userDetail);
-                    loginResponse.Message = "Anmeldung erfolgreich";
-
-                    userDetail.FailedLoginCount = 0;
-                    userDetail.LastActivity = StaticDateTimeProvider.Now;
-
-                    await _context.SaveChangesAsync();
-                    loginResponse.UserId = userDetail.Id;
-                    return loginResponse;
-                }
-
-                currentUser.FailedLoginCount += 1;
-
-                loginResponse.Message = genericErrorMessage;
-
+                currentUser.FailedLoginCount++;
                 await _context.SaveChangesAsync();
-                return loginResponse;
+                loginResponse.Message = "Invalid email address or password";
             }
-            catch (Exception ex)
-            {
-                loginResponse.Message = "Error Occurred: " + ex.Message;
-                return loginResponse;
-            }
+
+            return loginResponse;
         }
-
         public async Task<bool> CheckFailedLoginCount(int userId)
         {
             return await _context.Users.AnyAsync(f => f.FailedLoginCount > 4 && f.Id == userId);
@@ -169,33 +144,22 @@ namespace DocumentManagement.Data.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public override Task<InfoDto> Validate(User entity)
+        public async override Task<InfoDto> Validate(User entity)
         {
             var errorMessages = new InfoDto();
+
             if (!entity.Email.IsEmail())
-            {
-                errorMessages.Message.Add("Email address format is not correct");
-            }
-            else
-            {
-                var isEmail = entity.Email.IsEmail() || DoesEmailExist(entity.Email, entity.Id).Result;
-                if (!isEmail)
-                {
-                    errorMessages.Message.Add("The email address is already in use");
-                }
-            }
+                errorMessages.Message.Add("Invalid email address format");
+            else if (await DoesEmailExist(entity.Email, entity.Id))
+                errorMessages.Message.Add("The email address is already in use");
 
             if (string.IsNullOrEmpty(entity.FirstName))
-            {
-                errorMessages.Message.Add("First name could not be empty");
-            }
+                errorMessages.Message.Add("First name is required");
 
             if (string.IsNullOrEmpty(entity.LastName))
-            {
-                errorMessages.Message.Add("Last name could not be empty");
-            }
+                errorMessages.Message.Add("Last name is required");
 
-            return Task.FromResult(errorMessages);
+            return errorMessages;
         }
     }
 }

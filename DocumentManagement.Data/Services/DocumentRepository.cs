@@ -167,7 +167,7 @@ namespace DocumentManagement.Data.Services
 
         public async Task UpdatePublishDocsExpiry()
         {
-            var cutoffTime = DateTime.Now.AddMinutes(-60);
+            var cutoffTime = StaticDateTimeProvider.Now.AddMinutes(-60);
             var publishedDocs = _context.Documents
                                        .Where(d => d.IsDocumentShared && d.PublicDocumentUploadTime < cutoffTime
                                         && !d.IsExpired)

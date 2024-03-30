@@ -60,7 +60,7 @@ namespace LogicApi.Controllers
         }
 
         [HttpGet("{fileId}")]
-        public async Task<IActionResult> Get(int fileId)
+        public async Task<IActionResult> GetAsync(int fileId)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace LogicApi.Controllers
             }
         }
 
-        [HttpGet("{documentId}")]
+        [HttpGet("Publish/{documentId}")]
         public async Task<IActionResult> PublishDocumentAsync(int documentId)
         {
             try
@@ -102,7 +102,7 @@ namespace LogicApi.Controllers
                 var publishDocuments = await _unitOfWork.documentRepository.GetPublishedDocument();
                 if(publishDocuments == null || publishDocuments.Count == 0)
                 {
-                    return NotFound("Public Documents not found");
+                    return NotFound("Public Documents not found or it is already expired!");
                 }
                 return Ok(publishDocuments.ToDtoArray());
             }
@@ -114,7 +114,7 @@ namespace LogicApi.Controllers
         }
 
         [HttpDelete("{fileId}")]
-        public async Task<IActionResult> Delete(int fileId)
+        public async Task<IActionResult> DeleteAsyncs(int fileId)
         {
             try
             {
