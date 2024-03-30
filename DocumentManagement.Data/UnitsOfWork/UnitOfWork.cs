@@ -4,9 +4,6 @@ using DocumentManagement.Data.Security;
 using DocumentManagement.Data.Services;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DocumentManagement.Data.UnitsOfWork
@@ -20,9 +17,9 @@ namespace DocumentManagement.Data.UnitsOfWork
 
         private readonly IPasswordHasher _passwordHasher;
 
-        public IUserRepository _userRepository { get; }
+        public IUserRepository userRepository { get; }
 
-        public IDocumentRepository _documentRepository { get; }
+        public IDocumentRepository documentRepository { get; }
 
         public IAuthContext AuthContext { get; }
         public UnitOfWork(DocumentManagementContext context,
@@ -32,8 +29,8 @@ namespace DocumentManagement.Data.UnitsOfWork
             _context = context;
             _appSettings = appSettings;
             AuthContext = authContext;
-            _userRepository = userRepository;
-            _documentRepository = new DocumentRepository(_appSettings.Value.FileServerRoot, _context);
+            this.userRepository = userRepository;
+            documentRepository = new DocumentRepository(_appSettings.Value.FileServerRoot,AuthContext, _context);
             _passwordHasher = passwordHasher;
         }
 

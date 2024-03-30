@@ -41,7 +41,7 @@ namespace LogicApi.Controllers
 
                     Document document;
 
-                    document = await _unitOfWork._documentRepository.SaveFile(
+                    document = await _unitOfWork.documentRepository.SaveFile(
                         stream,
                         fileName);
 
@@ -66,8 +66,10 @@ namespace LogicApi.Controllers
         {
             try
             {
-                var document = await _unitOfWork._documentRepository.Get(fileId);
-                var content = await _unitOfWork._documentRepository.GetContentByte(document);
+                var document = await _unitOfWork.documentRepository.Get(fileId);
+                document.NumberOfDownloads++;
+                await _unitOfWork.SaveChangesAsync();
+                var content = await _unitOfWork.documentRepository.GetContentByte(document);
                 var contentType = MimeMapping.MimeUtility.GetMimeMapping($"export{Path.GetExtension(document.FilePath)}");
                 return File(content, contentType, Path.GetFileName(document.FilePath));
             }
@@ -88,7 +90,7 @@ namespace LogicApi.Controllers
         {
             try
             {
-                await _unitOfWork._documentRepository.Delete(fileId);
+                await _unitOfWork.documentRepository.Delete(fileId);
                 return Ok();
             }
             catch (UserException ex)

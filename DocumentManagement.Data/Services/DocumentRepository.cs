@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DocumentManagement.Data.Services
@@ -15,11 +16,13 @@ namespace DocumentManagement.Data.Services
         private const long MaxSingleFileBytes = 5 * 1024 * 1024;
         private readonly string _rootPath;
         private readonly DocumentManagementContext _context;
+        private readonly IAuthContext _authContext;
 
-        public DocumentRepository(string rootPath, DocumentManagementContext context) : base(context)
+        public DocumentRepository(string rootPath, IAuthContext authContext, DocumentManagementContext context) : base(context)
         {
             _rootPath = rootPath;
             _context = context;
+            _authContext = authContext;
         }
 
         public async override Task<List<Document>> GetAll()
@@ -71,6 +74,7 @@ namespace DocumentManagement.Data.Services
                 FilePath = relativePath,
                 FileSize = fileStream.Length,
                 UploadTime = StaticDateTimeProvider.Now,
+                UserId = _authContext.UserId
                 
             };
             UploadAreaThrowHelper(document, fileStream);
@@ -140,6 +144,11 @@ namespace DocumentManagement.Data.Services
         public override Task<InfoDto> Validate(Document entity)
         {
             throw new System.NotSupportedException();
+        }
+
+        public async Task<List<Document>> GetUserDocuments(int userId)
+        {
+            return await _context.Documents.Where(d => d.UserId == userId).ToListAsync();
         }
     }
        

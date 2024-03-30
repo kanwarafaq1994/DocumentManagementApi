@@ -24,7 +24,6 @@ namespace DocumentManagement.Data.Common.Extensions
                     LastName = registrationDto.LastName,
                     Email = registrationDto.Email,
                     PasswordHash = registrationDto.Password
-                    //Documents = registrationDto.Documents.ToFpUserEmailNotificationsList()
                 };
 
                 return createUser;

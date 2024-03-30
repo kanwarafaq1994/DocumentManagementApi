@@ -155,7 +155,7 @@ namespace DocumentManagement.Data.Services
 
         private string GenerateJwtToken(User user)
         {
-            // generate token that is valid for 1 day
+            // generate token that is valid for 2 hours
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor

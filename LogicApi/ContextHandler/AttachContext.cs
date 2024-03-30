@@ -40,7 +40,7 @@ namespace LogicApi.ContextHandler
             var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
             // attach user to context on successful jwt validation
-            var user = unitOfWork._userRepository.Get(userId).Result;
+            var user = unitOfWork.userRepository.Get(userId).Result;
             context.Items["User"] = user;
             _authContext.Set(user);
             return user;
