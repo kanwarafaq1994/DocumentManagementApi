@@ -1,15 +1,13 @@
-﻿using DocumentManagement.Data.UnitsOfWork;
+﻿using DocumentManagement.Data.Common;
+using DocumentManagement.Data.Common.Extensions;
+using DocumentManagement.Data.DTOs;
+using DocumentManagement.Data.Security;
+using DocumentManagement.Data.UnitsOfWork;
 using LogicApi.ContextHandler;
+using LogicApi.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using DocumentManagement.Data.DTOs;
-using DocumentManagement.Data.Common;
-using DocumentManagement.Data.Common.Extensions;
-using System.Linq;
-using LogicApi.Extensions;
-using DocumentManagement.Data.Security;
-using DocumentManagement.Data.Models;
 
 namespace LogicApi.Controllers
 {
@@ -44,7 +42,7 @@ namespace LogicApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new InfoDto("Login failed"));
+                return StatusCode(500, new InfoDto("Login failed" + ex.Message));
             }
         }
         [HttpPost("logout")]
@@ -66,7 +64,7 @@ namespace LogicApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new InfoDto("Logout failed"));
+                return StatusCode(500, new InfoDto("Logout failed" + ex.Message));
             }
         }
 
@@ -95,7 +93,7 @@ namespace LogicApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new InfoDto("Register failed"));
+                return StatusCode(500, new InfoDto("Registeration failed" + ex.Message));
             }
         }
     }

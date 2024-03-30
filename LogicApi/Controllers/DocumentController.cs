@@ -1,29 +1,28 @@
 ﻿using DocumentManagement.Data.Common;
+using DocumentManagement.Data.Common.Extensions;
 using DocumentManagement.Data.Exceptions;
 using DocumentManagement.Data.Models;
 using DocumentManagement.Data.UnitsOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace LogicApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UploadController : ControllerBase
+    public class DocumentController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        public UploadController(IUnitOfWork unitOfWork)
+        public DocumentController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
         [HttpPost, DisableRequestSizeLimit]
-        public async Task<ActionResult> Upload(List<IFormFile> files)
+        public async Task<ActionResult> UploadAsync(List<IFormFile> files)
         {
             var invalidFileNames = new List<InfoDto>();
             try
@@ -54,14 +53,13 @@ namespace LogicApi.Controllers
             {
                 return StatusCode(500, new InfoDto(ex.Message));
             }
-            catch (Exception ex)
+            catch
             {
                 return StatusCode(500, new InfoDto("Document could not be uploaded"));
             }
         }
 
         [HttpGet("{fileId}")]
-        //[ServiceFilter(typeof(OwnDocumentAttribute))]
         public async Task<IActionResult> Get(int fileId)
         {
             try
@@ -78,14 +76,44 @@ namespace LogicApi.Controllers
    
                 return StatusCode(500, new InfoDto(ex.Message));
             }
-            catch (Exception ex)
+        }
+
+        [HttpGet("{documentId}")]
+        public async Task<IActionResult> PublishDocumentAsync(int documentId)
+        {
+            try
             {
-                return StatusCode(500, new InfoDto("Document could not be loaded"));
+                var publishDocument = await _unitOfWork.documentRepository.PublishDocument(documentId);
+                await _unitOfWork.SaveChangesAsync();
+                return Ok(new InfoDto("Document Published successfully"));
+            }
+            catch (UserException ex)
+            {
+
+                return StatusCode(500, new InfoDto(ex.Message));
+            }
+        }
+
+        [HttpGet("GetPublishDocumentAsync")]
+        public async Task<IActionResult> GetPublishDocumentAsync()
+        {
+            try
+            {
+                var publishDocuments = await _unitOfWork.documentRepository.GetPublishedDocument();
+                if(publishDocuments == null || publishDocuments.Count == 0)
+                {
+                    return NotFound("Public Documents not found");
+                }
+                return Ok(publishDocuments.ToDtoArray());
+            }
+            catch (UserException ex)
+            {
+
+                return StatusCode(500, new InfoDto(ex.Message));
             }
         }
 
         [HttpDelete("{fileId}")]
-       // [ServiceFilter(typeof(OwnDocumentAttribute))]
         public async Task<IActionResult> Delete(int fileId)
         {
             try
@@ -96,10 +124,6 @@ namespace LogicApi.Controllers
             catch (UserException ex)
             {
                 return StatusCode(500, new InfoDto(ex.Message));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new InfoDto("Document could not be deleted"));
             }
         }
     }

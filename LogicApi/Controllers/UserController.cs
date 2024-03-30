@@ -20,7 +20,7 @@ namespace LogicApi.Controllers
             _authContext = authContext;
         }
         [HttpGet("{userId}")]
-        public async Task<IActionResult> GetUserDocuments(int userId)
+        public async Task<IActionResult> GetUserDocumentsAsync(int userId)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace LogicApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new InfoDto("Get user documents failed"));
+                return StatusCode(500, new InfoDto("Get user documents failed" + ex.Message));
             }
         }
     }

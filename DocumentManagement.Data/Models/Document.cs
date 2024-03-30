@@ -25,10 +25,12 @@ namespace DocumentManagement.Data.Models
 
         public DateTime UploadTime { get; set; }
 
-        public DateTime PublicDocumentUploadTime { get; set; }
+        public DateTime? PublicDocumentUploadTime { get; set; }
 
         public int NumberOfDownloads { get; set; }
 
         public bool IsExpired { get; set; }
+
+        public bool IsDocumentShared { get; set; }
     }
 }

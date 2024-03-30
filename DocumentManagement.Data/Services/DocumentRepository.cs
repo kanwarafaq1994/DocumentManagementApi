@@ -1,4 +1,5 @@
 ﻿using DocumentManagement.Data.Common;
+using DocumentManagement.Data.Common.Extensions;
 using DocumentManagement.Data.Exceptions;
 using DocumentManagement.Data.Models;
 using DocumentManagement.Data.Repositories;
@@ -27,8 +28,7 @@ namespace DocumentManagement.Data.Services
 
         public async override Task<List<Document>> GetAll()
         {
-            var files = await _context.Documents.ToListAsync();
-            return files;
+            return await _context.Documents.ToListAsync();
         }
 
         public override async Task<Document> Delete(int id)
@@ -75,7 +75,7 @@ namespace DocumentManagement.Data.Services
                 FileSize = fileStream.Length,
                 UploadTime = StaticDateTimeProvider.Now,
                 UserId = _authContext.UserId
-                
+
             };
             UploadAreaThrowHelper(document, fileStream);
             fileStream.Position = 0;
@@ -106,7 +106,7 @@ namespace DocumentManagement.Data.Services
                 await _context.SaveChangesAsync();
                 return document;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 // Delete partially uploaded, or files that are not known in DB.
                 if (File.Exists(fullPath))
@@ -126,7 +126,7 @@ namespace DocumentManagement.Data.Services
         private void UploadAreaThrowHelper(Document document, Stream fileStream)
         {
             // check file extension
-            var whiteList = new List<string>() { "pdf", "jpg", "jpeg", "tiff", "tif", "png","xls","txt" };
+            var whiteList = new List<string>() { "pdf", "jpg", "jpeg", "tiff", "tif", "png", "xls", "txt" };
             var extension = Path.GetExtension(document.FilePath)?.ToLower();
             if (string.IsNullOrEmpty(extension) || !whiteList.Contains(extension.Remove(0, 1)))
                 throw new FileLoadException("Invalid file type");
@@ -135,12 +135,12 @@ namespace DocumentManagement.Data.Services
             {
                 throw new UserException("The file could not be larger than 5 MB.");
             }
-        
-                // throw exception if file header is invalid
 
-                MimeTypes.CheckContentType(fileStream);
-                
-            }
+            // throw exception if file header is invalid
+
+            MimeTypes.CheckContentType(fileStream);
+
+        }
         public override Task<InfoDto> Validate(Document entity)
         {
             throw new System.NotSupportedException();
@@ -150,8 +150,57 @@ namespace DocumentManagement.Data.Services
         {
             return await _context.Documents.Where(d => d.UserId == userId).ToListAsync();
         }
+
+        public async Task<Document> PublishDocument(int documentId)
+        {
+            var Publishdoc = await Get(documentId);
+
+            if (Publishdoc == null)
+            {
+                throw new UserException("Document is not available");
+            }
+
+            Publishdoc.IsDocumentShared = true;
+            Publishdoc.PublicDocumentUploadTime = StaticDateTimeProvider.Now;
+            return Publishdoc;
+        }
+
+        public async Task UpdatePublishDocsExpiry()
+        {
+            var cutoffTime = DateTime.Now.AddMinutes(-60);
+            var publishedDocs = _context.Documents
+                                       .Where(d => d.IsDocumentShared && d.PublicDocumentUploadTime < cutoffTime
+                                        && !d.IsExpired)
+                                       .ToList();
+
+            if (publishedDocs.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var doc in publishedDocs)
+            {
+                doc.IsExpired = true;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+
+
+        public async Task<List<Document>> GetPublishedDocument()
+        {
+            await UpdatePublishDocsExpiry();
+
+            var publishedDocs = await _context.Documents
+                                               .Where(d => d.IsDocumentShared && !d.IsExpired)
+                                               .ToListAsync();
+
+            return publishedDocs;
+        }
+
     }
-       
-    }
+
+}
 
 
