@@ -126,7 +126,7 @@ namespace DocumentManagement.Data.Services
         private void UploadAreaThrowHelper(Document document, Stream fileStream)
         {
             // check file extension
-            var whiteList = new List<string>() { "pdf", "jpg", "jpeg", "tiff", "tif", "png", "xls", "txt" };
+            var whiteList = new List<string>() { "pdf", "jpg", "jpeg", "tiff", "tif", "png", "xls", "txt","doc","docx" };
             var extension = Path.GetExtension(document.FilePath)?.ToLower();
             if (string.IsNullOrEmpty(extension) || !whiteList.Contains(extension.Remove(0, 1)))
                 throw new FileLoadException("Invalid file type");

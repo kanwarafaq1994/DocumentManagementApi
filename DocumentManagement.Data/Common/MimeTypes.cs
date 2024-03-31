@@ -29,7 +29,7 @@ namespace DocumentManagement.Data.Common
             string headerType = ScanFileForMimeType(fileStream);
             var isContentTypeValid = mimeTypes.ContainsValue(headerType);
 
-            if (!isContentTypeValid) throw new FileLoadException("Ungültiger Dateityp");
+            if (!isContentTypeValid) throw new FileLoadException("Invalid Data Type");
         }
 
         /// <summary>
@@ -67,9 +67,12 @@ namespace DocumentManagement.Data.Common
             mimeTypes.Add("jps", "image/x-jps");
             mimeTypes.Add("pjpeg", "image/pjpeg");
             mimeTypes.Add("tif", "image/tiff");
-            mimeTypes.Add("xlsx", "application/x-zip-compressed");
+            mimeTypes.Add("xlsx", "application/octet-stream");
             mimeTypes.Add("png", "image/x-png");
             mimeTypes.Add("pdf", "application/pdf");
+            mimeTypes.Add("txt", "text/plain");
+            mimeTypes.Add("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            mimeTypes.Add("doc", "application/msword");
         }
     }
 }
