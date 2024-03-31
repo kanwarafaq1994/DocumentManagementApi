@@ -1,30 +1,27 @@
 
+using DocumentManagement.Data.Common;
+using DocumentManagement.Data.Common.Extensions;
+using DocumentManagement.Data.Repositories;
+using DocumentManagement.Data.Security;
+using DocumentManagement.Data.Services;
+using DocumentManagement.Data.UnitsOfWork;
+using LogicApi.ContextHandler;
+using LogicApi.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
-using System.Linq;
-using Microsoft.IdentityModel.Logging;
-using Newtonsoft.Json;
-using DocumentManagement.Data.Common;
-using DocumentManagement.Data;
-using DocumentManagement.Data.Security;
-using LogicApi.Middlewares;
-using DocumentManagement.Data.Repositories;
-using DocumentManagement.Data.UnitsOfWork;
-using DocumentManagement.Data.Services;
-using LogicApi.ContextHandler;
 
 namespace LogicAPI
 {
@@ -35,7 +32,6 @@ namespace LogicAPI
         public Startup(IWebHostEnvironment env)
         {
             var builder = new ConfigurationBuilder().SetBasePath(env.ContentRootPath).AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-
             Configuration = builder.Build();
             BuildAppSettingsProvider();
         }
@@ -64,22 +60,12 @@ namespace LogicAPI
                 services.AddScoped<IPasswordHasher, PasswordHasher>();
                 services.AddScoped<IUserRepository, UserRepository>();
                 services.AddScoped<IUnitOfWork, UnitOfWork>();
-                //services.AddScoped<IEmailRepository, EmailRepository>();
-                //services.AddScoped<IUserRepository, UserRepository>();
-                //services.AddScoped<IOrganizationRepository, OrganizationRepository>();
-                //services.AddScoped<IUnitOfWork, UnitOfWork>();
-                //services.AddScoped<IReportRepository, ReportRepository>();
-                //services.AddScoped<ICountyCourtsRepository, CountyCourtsRepository>();
-                //services.AddScoped<IExpressionOfInterestInterfaceRepository, ExpressionOfInterestInterfaceRepository>();
-                //services.AddScoped<IBicRepository, BicRepository>();
-                //services.AddScoped<IZipCodeRepository, ZipCodeRepository>();
                 services.AddScoped<AttachContext>();
                 services.AddScoped<IAuthContext, AuthContext>();
                 services.AddSingleton<HtmlEncoder>(HtmlEncoder.Create(allowedRanges: new[]
                 {
                     UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs
                 }));
-                //AddFilterAttributes(services);
 
                 services
                     .AddControllers()
@@ -108,11 +94,6 @@ namespace LogicAPI
                  );
 
                 JWTAuthentificationConfig(services); //Configure JWT Authentication
-
-               
-                // Validators 
-                //services.AddScoped<IDocumentValidator, DocumentValidator>();
-
                 services.AddMvc().AddNewtonsoftJson();
             }
             catch (Exception x)
@@ -130,16 +111,15 @@ namespace LogicAPI
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("v1/swagger.json", "Document Managament API V1");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Document Managament API V1");
                 });
             }
 
+            app.UsePathBase("/swagger");
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseCors(corsPolicy);
             app.UseSession();
-
-            //app.UseMiddleware<LoggingMiddleware>();
 
             app.UseWhen(context => context.Request.Path.StartsWithSegments("/api")
                                    && !(context.Request.RouteValues["controller"].Equals("Account")), applicationBuilder =>
@@ -147,13 +127,6 @@ namespace LogicAPI
                                        applicationBuilder.UseMiddleware<ActivityMiddleware>();
                                    });
             var whiteListedEndPoints = Configuration.GetSection("WhiteListedEndPoints:EndPoints").Get<List<string>>();
-            //app.UseWhen(ctx => (ctx.Request.Method == "PUT" || ctx.Request.Method == "POST")
-            //                   && !whiteListedEndPoints.Contains(ctx.Request.Path.Value)
-            //                   && !(ctx.Request.ContentType?.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0), appBuilder =>
-            //                   {
-            //                       appBuilder.UseAntiXssMiddleware();
-            //                   });
-            ////HttpHelper.Configure(app.ApplicationServices.GetRequiredService<IHttpContextAccessor>());
             app.UseAuthorization();
             app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHttpException();
@@ -171,6 +144,8 @@ namespace LogicAPI
             var appSettingsSection = Configuration.GetSection("AppSettings");
             var appSettings = appSettingsSection.Get<AppSettings>();
             JwtTokenGenerator.SecretKey = appSettings.PublicDocumentSecret;
+            DocumentHelper.InitializeFileServerRoot(appSettings.FileServerRoot);
+
         }
         public void AddSwaggerConfig(IServiceCollection services)
         {

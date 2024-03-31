@@ -4,8 +4,6 @@ using LogicApi.ContextHandler;
 using LogicApi.Extensions;
 using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 

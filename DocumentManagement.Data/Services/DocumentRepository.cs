@@ -148,16 +148,16 @@ namespace DocumentManagement.Data.Services
 
         public async Task<List<Document>> GetUserDocuments(int userId)
         {
-            return await _context.Documents.Where(d => d.UserId == userId).ToListAsync();
+            return await _context.Documents.Where(u => u.Id == userId).ToListAsync();
         }
 
         public async Task<Document> PublishDocument(int documentId)
         {
             var Publishdoc = await Get(documentId);
 
-            if (Publishdoc == null)
+            if (Publishdoc == null || Publishdoc.IsDocumentShared)
             {
-                throw new UserException("Document is not available");
+                throw new UserException("Document is not available or it is already shared");
             }
 
             Publishdoc.IsDocumentShared = true;
@@ -198,7 +198,6 @@ namespace DocumentManagement.Data.Services
 
             return publishedDocs;
         }
-
     }
 
 }

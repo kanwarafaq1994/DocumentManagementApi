@@ -5,6 +5,7 @@ using DocumentManagement.Data.Models;
 using DocumentManagement.Data.UnitsOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -65,6 +66,10 @@ namespace LogicApi.Controllers
             try
             {
                 var document = await _unitOfWork.documentRepository.Get(fileId);
+                if(document == null)
+                {
+                    return NotFound(new InfoDto("Document not found"));
+                }    
                 document.NumberOfDownloads++;
                 await _unitOfWork.SaveChangesAsync();
                 var content = await _unitOfWork.documentRepository.GetContentByte(document);
