@@ -18,7 +18,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
@@ -126,7 +125,6 @@ namespace LogicAPI
                                    {
                                        applicationBuilder.UseMiddleware<ActivityMiddleware>();
                                    });
-            var whiteListedEndPoints = Configuration.GetSection("WhiteListedEndPoints:EndPoints").Get<List<string>>();
             app.UseAuthorization();
             app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHttpException();

@@ -28,10 +28,10 @@ namespace DocumentManagement.Data.Common.Extensions
                 FileSize = document.FileSize,
                 FileName = Path.GetFileName(document.FilePath),
                 UploadTime = document.UploadTime,
+                UserName = $"{document.UserDocument.FirstName} {document.UserDocument.LastName}",
                 NumberOfDownloads = document.NumberOfDownloads,
                 AbsoluteFilePath = Path.Combine(_fileServerRoot,document.FilePath),
                 UserId = document.UserId,
-                IsExpired = document.IsExpired
             };
         }
 

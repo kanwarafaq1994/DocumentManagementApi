@@ -27,9 +27,6 @@ namespace DocumentManagement.Data.Common
         public static DateTime thisYearStart = new DateTime(baseDate.Year, 1, 1);
         public static DateTime thisYearEnd = thisYearStart.AddYears(1).AddSeconds(-1);
 
-        public const int TokenTimeoutHours = 2;
-        public const int PasswordTokenTimeoutHours = 8; // 8 hours
-
-
+        public const int TokenTimeoutHours = 8;
     }
 }

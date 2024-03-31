@@ -124,7 +124,7 @@ namespace LogicApi.Controllers
             try
             {
                 await _unitOfWork.documentRepository.Delete(fileId);
-                return Ok();
+                return Ok(new InfoDto("Document Deleted Successfully!"));
             }
             catch (UserException ex)
             {

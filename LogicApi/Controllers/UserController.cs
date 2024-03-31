@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using DocumentManagement.Data.Common.Extensions;
+using LogicApi.Extensions;
 
 namespace LogicApi.Controllers
 {
@@ -19,6 +20,7 @@ namespace LogicApi.Controllers
             _unitOfWork = unitOfWork;
             _authContext = authContext;
         }
+
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetUserDocumentsAsync(int userId)
         {
