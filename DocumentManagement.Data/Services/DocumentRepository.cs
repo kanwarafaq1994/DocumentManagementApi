@@ -148,7 +148,7 @@ namespace DocumentManagement.Data.Services
 
         public async Task<List<Document>> GetUserDocuments(int userId)
         {
-            return await _context.Documents.Where(u => u.Id == userId).ToListAsync();
+            return await _context.Documents.Where(u => u.UserId == userId).ToListAsync();
         }
 
         public async Task<Document> PublishDocument(int documentId)
