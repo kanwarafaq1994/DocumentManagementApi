@@ -232,7 +232,7 @@ namespace DocumentManagement.Data.Services
                     break;
             }
 
-            return Task.FromResult(previewImagePath);
+            return Task.FromResult(fullPreviewImagePath);
         }
 
         private void ConvertPdfPageToImage(string pdfFilePath, string imageOutputPath)
