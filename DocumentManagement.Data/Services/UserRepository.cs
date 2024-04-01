@@ -48,32 +48,21 @@ namespace DocumentManagement.Data.Services
         {
             return await _context.Users.ToListAsync();
         }
-        public async Task<bool> DoesEmailExist(string email, int userId)
+        public async Task<bool> DoesEmailExistAsync(string email, int userId)
         {
-            bool isExisting = false;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException("Email cannot be null or whitespace.", nameof(email));
+            }
 
-            try
-            {
-                //in case email update scenario
-                if (userId > 0)
-                    isExisting = await _context.Users.AnyAsync(m =>
-                        m.Email == email && m.Id != userId);
-                else
-                    isExisting = await _context.Users.AnyAsync(m =>
-                        m.Email == email);
-            }
-            catch (Exception x)
-            {
-                throw new Exception(x.Message);
-            }
+            bool isExisting = await _context.Users
+                .AnyAsync(user => user.Email == email && (userId == 0 || user.Id != userId));
 
             return isExisting;
         }
-
         public async Task<User> GetUserByEmail(string email)
         {
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<LoginResponseDto> CreateUserSession(LoginDto loginDto)

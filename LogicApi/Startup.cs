@@ -141,7 +141,6 @@ namespace LogicAPI
         {
             var appSettingsSection = Configuration.GetSection("AppSettings");
             var appSettings = appSettingsSection.Get<AppSettings>();
-            JwtTokenGenerator.SecretKey = appSettings.PublicDocumentSecret;
             DocumentHelper.InitializeFileServerRoot(appSettings.FileServerRoot);
 
         }
