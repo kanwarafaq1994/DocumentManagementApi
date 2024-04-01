@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LogicApi.Controllers
@@ -31,40 +32,53 @@ namespace LogicApi.Controllers
                     var fileName = Path.GetFileName(formFile.FileName.Trim('"'));
                     if (!fileName.IsValidFileName())
                     {
-                        fileStatusMessages.Add(new InfoDto(fileName + "is invalid"));
-
-                        continue;
-                    }
-                    await using var stream = formFile.OpenReadStream();
-
-                    var (document, uploaded) = await _unitOfWork.documentRepository.SaveFile(
-                    formFile.OpenReadStream(),fileName);
-
-                    if (!uploaded)
-                    {
-                        // File already exists, add to invalid file names list or handle as desired
-                        fileStatusMessages.Add(new InfoDto(fileName + " is already uploaded"));
+                        fileStatusMessages.Add(new InfoDto(fileName + " is invalid"));
                         continue;
                     }
 
-                    // File was successfully uploaded, include in the response
-                    fileStatusMessages.Add(new InfoDto(fileName + " uploaded successfully"));
-
-                    string previewImagePath = await _unitOfWork.documentRepository
-                        .GeneratePreviewImage(document.FilePath, fileName);
-
-                    if (previewImagePath != null)
+                    try
                     {
-                        document.PreviewImagePath = previewImagePath;
-                        await _unitOfWork.SaveChangesAsync();
+                        using (var stream = formFile.OpenReadStream())
+                        {
+                            var (document, uploaded) = await _unitOfWork.documentRepository.SaveFile(stream, fileName);
+
+                            if (!uploaded)
+                            {
+                                fileStatusMessages.Add(new InfoDto(fileName + " is already uploaded"));
+                            }
+                            else
+                            {
+                                fileStatusMessages.Add(new InfoDto(fileName + " uploaded successfully"));
+
+                                string previewImagePath = await _unitOfWork.documentRepository.GeneratePreviewImage(document.FilePath, fileName);
+
+                                if (previewImagePath != null)
+                                {
+                                    document.PreviewImagePath = previewImagePath;
+                                    await _unitOfWork.SaveChangesAsync();
+                                }
+                            }
+                        }
+                    }
+                    catch (UserException ex)
+                    {
+                        fileStatusMessages.Add(new InfoDto($"Error uploading {fileName}: {ex.Message}"));
                     }
                 }
 
-                return Ok(fileStatusMessages);
+                // Check if there are any error messages, if not, return success
+                if (fileStatusMessages.Any())
+                {
+                    return Ok(fileStatusMessages);
+                }
+                else
+                {
+                    return Ok(new InfoDto("All documents uploaded successfully!"));
+                }
             }
             catch (UserException ex)
             {
-                return StatusCode(500, new InfoDto("Document could not be uploaded" + ex.Message));
+                return StatusCode(500, new InfoDto("Document could not be uploaded: " + ex.Message));
             }
         }
 

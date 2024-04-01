@@ -62,7 +62,6 @@ namespace DocumentManagement.Data.Services
         public async Task<(Document document, bool uploaded)> SaveFile(Stream fileStream, string fileName, bool overwriteFile = false)
         {
             string directory = "SealDocs";
-
             var relativePath = Path.Combine(directory, fileName);
             var fullPath = Path.Combine(_rootPath, relativePath);
 
@@ -71,14 +70,14 @@ namespace DocumentManagement.Data.Services
                 return (null, false);
             }
 
-            var document = new Document()
+            var document = new Document
             {
                 FilePath = relativePath,
                 FileSize = fileStream.Length,
                 UploadTime = StaticDateTimeProvider.Now,
                 UserId = _authContext.UserId
-
             };
+
             UploadAreaThrowHelper(document, fileStream);
             fileStream.Position = 0;
 
@@ -91,34 +90,43 @@ namespace DocumentManagement.Data.Services
                     await fileStream.CopyToAsync(file);
                 }
 
-                // Overwrite old entry with new Data if it changed
-                var oldEntry = await _context.Documents.FirstOrDefaultAsync(x => x.FilePath == relativePath);
-                if (oldEntry != null)
-                {
-                    oldEntry.FileSize = document.FileSize;
-                    oldEntry.UploadTime = document.UploadTime;
-                    await Update(oldEntry);
-                    document = oldEntry;
-                }
-                else
-                {
-                    await Add(document);
-                }
-
-                await _context.SaveChangesAsync();
+                await UpdateOrCreateDocumentEntry(document, relativePath);
                 return (document, true);
             }
             catch (Exception ex)
             {
-                // Delete partially uploaded, or files that are not known in DB.
-                if (File.Exists(fullPath))
-                {
-                    File.Delete(fullPath);
-                }
-                throw;
+                // Handle file-related exceptions
+                HandleFileException(fullPath, ex);
+                throw new UserException("An error occurred while saving the file.");
             }
         }
 
+        private async Task UpdateOrCreateDocumentEntry(Document document, string relativePath)
+        {
+            var existingDocument = await _context.Documents.FirstOrDefaultAsync(x => x.FilePath == relativePath);
+            if (existingDocument != null)
+            {
+                existingDocument.FileSize = document.FileSize;
+                existingDocument.UploadTime = document.UploadTime;
+                await Update(existingDocument);
+            }
+            else
+            {
+                await Add(document);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        private void HandleFileException(string fullPath, Exception ex)
+        {
+            // Delete partially uploaded or unknown files
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+            throw new UserException("An error occurred while saving the file. " + ex.Message);
+        }
         public async Task<byte[]> GetContentByte(Document document)
         {
             var fullPath = Path.Combine(_rootPath, document.FilePath);
@@ -131,7 +139,7 @@ namespace DocumentManagement.Data.Services
             var whiteList = new List<string>() { "pdf", "jpg", "jpeg", "tiff", "tif", "png", "xls", "txt", "doc", "docx" };
             var extension = Path.GetExtension(document.FilePath)?.ToLower();
             if (string.IsNullOrEmpty(extension) || !whiteList.Contains(extension.Remove(0, 1)))
-                throw new FileLoadException("Invalid file type");
+                throw new UserException("Invalid file type");
 
             if (document.FileSize > MaxSingleFileBytes)
             {
