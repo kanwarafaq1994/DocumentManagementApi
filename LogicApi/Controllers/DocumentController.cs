@@ -4,6 +4,7 @@ using DocumentManagement.Data.Exceptions;
 using DocumentManagement.Data.UnitsOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -93,12 +94,12 @@ namespace LogicApi.Controllers
                     return NotFound(new InfoDto("Document not found"));
                 }
                 document.NumberOfDownloads++;
-                await _unitOfWork.SaveChangesAsync();
                 var content = await _unitOfWork.documentRepository.GetContentByte(document);
                 var contentType = MimeMapping.MimeUtility.GetMimeMapping($"export{Path.GetExtension(document.FilePath)}");
+                await _unitOfWork.SaveChangesAsync();
                 return File(content, contentType, Path.GetFileName(document.FilePath));
             }
-            catch (UserException ex)
+            catch (Exception ex)
             {
 
                 return StatusCode(500, new InfoDto(ex.Message));

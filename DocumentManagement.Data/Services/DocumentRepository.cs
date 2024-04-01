@@ -130,8 +130,13 @@ namespace DocumentManagement.Data.Services
         public async Task<byte[]> GetContentByte(Document document)
         {
             var fullPath = Path.Combine(_rootPath, document.FilePath);
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException($"File not found at path: {fullPath}");
+            }
             return await File.ReadAllBytesAsync(fullPath);
         }
+
 
         private void UploadAreaThrowHelper(Document document, Stream fileStream)
         {
