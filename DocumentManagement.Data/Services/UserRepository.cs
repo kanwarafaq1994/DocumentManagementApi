@@ -139,7 +139,7 @@ namespace DocumentManagement.Data.Services
 
             if (!entity.Email.IsEmail())
                 errorMessages.Message.Add("Invalid email address format");
-            else if (await DoesEmailExist(entity.Email, entity.Id))
+            else if (await DoesEmailExistAsync(entity.Email, entity.Id))
                 errorMessages.Message.Add("The email address is already in use");
 
             if (string.IsNullOrEmpty(entity.FirstName))

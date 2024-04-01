@@ -9,7 +9,7 @@ namespace DocumentManagement.Data.Repositories
 {
     public interface IUserRepository : IRepository<User>
     {
-        Task<bool> DoesEmailExist(string email, int userId);
+        Task<bool> DoesEmailExistAsync(string email, int userId);
         Task<LoginResponseDto> CreateUserSession(LoginDto loginDto);
         Task<bool> CheckFailedLoginCount(int userId);
         Task<DateTime?> UpdateActivityAsync(int userId, DateTime? lastActivity);
