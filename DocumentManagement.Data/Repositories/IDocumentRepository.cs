@@ -14,6 +14,7 @@ namespace DocumentManagement.Data.Repositories
         Task<List<Document>> GetPublishedDocument();
         Task UpdatePublishDocsExpiry();
         Task<Document> PublishDocument(int documentId);
+        Task<string> GeneratePreviewImage(string filePath, string originalFileName);
         Task<byte[]> GetContentByte(Document document);
     }
 

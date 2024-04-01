@@ -70,7 +70,7 @@ namespace DocumentManagement.Data.Common
             mimeTypes.Add("png", "image/x-png");
             mimeTypes.Add("pdf", "application/pdf");
             mimeTypes.Add("txt", "text/plain");
-            mimeTypes.Add("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            mimeTypes.Add("docx", "application/x-zip-compressed");
             mimeTypes.Add("doc", "application/msword");
         }
     }

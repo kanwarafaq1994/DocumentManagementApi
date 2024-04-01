@@ -6,6 +6,7 @@ using DocumentManagement.Data.UnitsOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -45,18 +46,25 @@ namespace LogicApi.Controllers
                         stream,
                         fileName);
 
+                    string previewImagePath = await _unitOfWork.documentRepository
+                        .GeneratePreviewImage(document.FilePath, fileName);
+
+                    if(previewImagePath != null)
+                    {
+                        document.PreviewImagePath = previewImagePath;
+                        await _unitOfWork.SaveChangesAsync();
+                    }
                 }
 
-                return Ok(invalidFileNames);
-
+                return Ok(invalidFileNames.Count switch
+                {
+                    0 => (object)new InfoDto("Document uploaded successfully!"),
+                    _ => invalidFileNames
+                });
             }
             catch (UserException ex)
             {
-                return StatusCode(500, new InfoDto(ex.Message));
-            }
-            catch
-            {
-                return StatusCode(500, new InfoDto("Document could not be uploaded"));
+                return StatusCode(500, new InfoDto("Document could not be uploaded" + ex.Message));
             }
         }
 

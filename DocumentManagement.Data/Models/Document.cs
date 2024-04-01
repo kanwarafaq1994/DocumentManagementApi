@@ -21,6 +21,8 @@ namespace DocumentManagement.Data.Models
         [MaxLength(ModelConstants.MaxFilePath)]
         public string FilePath { get; set; }
 
+        [MaxLength(ModelConstants.MaxFilePath)]
+        public string PreviewImagePath { get; set; }
         public long FileSize { get; set; }
 
         public DateTime UploadTime { get; set; }

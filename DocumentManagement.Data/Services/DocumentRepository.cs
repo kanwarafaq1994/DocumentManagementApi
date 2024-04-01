@@ -1,14 +1,17 @@
-﻿using DocumentManagement.Data.Common;
-using DocumentManagement.Data.Common.Extensions;
+﻿using Aspose.Words;
+using DocumentManagement.Data.Common;
 using DocumentManagement.Data.Exceptions;
-using DocumentManagement.Data.Models;
 using DocumentManagement.Data.Repositories;
+using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AsposeDocument = Aspose.Words.Document;
+using Document = DocumentManagement.Data.Models.Document;
+using SaveFormat = Aspose.Words.SaveFormat;
 
 namespace DocumentManagement.Data.Services
 {
@@ -66,7 +69,7 @@ namespace DocumentManagement.Data.Services
             if (File.Exists(fullPath) && !overwriteFile)
             {
                 throw new UserException(
-                    "The file already exists in this group. Please rename the file and try again");
+                    "The file already exists in this folder. Please rename the file and try again");
             }
 
             var document = new Document()
@@ -126,7 +129,7 @@ namespace DocumentManagement.Data.Services
         private void UploadAreaThrowHelper(Document document, Stream fileStream)
         {
             // check file extension
-            var whiteList = new List<string>() { "pdf", "jpg", "jpeg", "tiff", "tif", "png", "xls", "txt","doc","docx" };
+            var whiteList = new List<string>() { "pdf", "jpg", "jpeg", "tiff", "tif", "png", "xls", "txt", "doc", "docx" };
             var extension = Path.GetExtension(document.FilePath)?.ToLower();
             if (string.IsNullOrEmpty(extension) || !whiteList.Contains(extension.Remove(0, 1)))
                 throw new FileLoadException("Invalid file type");
@@ -186,8 +189,6 @@ namespace DocumentManagement.Data.Services
             await _context.SaveChangesAsync();
         }
 
-
-
         public async Task<List<Document>> GetPublishedDocument()
         {
             await UpdatePublishDocsExpiry();
@@ -198,8 +199,94 @@ namespace DocumentManagement.Data.Services
 
             return publishedDocs;
         }
-    }
 
+
+        public Task<string> GeneratePreviewImage(string filePath, string originalFileName)
+        {
+            string previewImagePath = Path.Combine(Path.GetDirectoryName(filePath), "Previews", Path.GetFileNameWithoutExtension(originalFileName) + ".png");
+            string fullFilePath = Path.Combine(_rootPath, filePath);
+            string fullPreviewImagePath = Path.Combine(_rootPath, previewImagePath);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPreviewImagePath)); // Ensure preview directory exists
+
+            var extension = Path.GetExtension(originalFileName)?.ToLower();
+            switch (extension)
+            {
+                case ".pdf":
+                    ConvertPdfPageToImage(fullFilePath, fullPreviewImagePath);
+                    break;
+
+                case ".jpg":
+                case ".jpeg":
+                case ".png":
+                    File.Copy(fullFilePath, fullPreviewImagePath, true);
+                    break;
+
+                case ".txt":
+                    ConvertTextFileToImage(fullFilePath, fullPreviewImagePath);
+                    break;
+
+                case ".docx":
+                case ".doc":
+                    ConvertToImage(fullFilePath, fullPreviewImagePath);
+                    break;
+            }
+
+            return Task.FromResult(previewImagePath);
+        }
+
+        private void ConvertPdfPageToImage(string pdfFilePath, string imageOutputPath)
+        {
+            using (var images = new MagickImageCollection())
+            {
+                // Settings for reading the first page of the PDF
+                var settings = new MagickReadSettings { Density = new Density(300, 300), FrameIndex = 0, FrameCount = 1 };
+                images.Read(pdfFilePath, settings);
+
+                if (images.Count > 0)
+                {
+                    images[0].Write(imageOutputPath);
+                }
+            }
+        }
+
+        private void ConvertTextFileToImage(string textFilePath, string imageOutputPath)
+        {
+            var text = File.ReadAllLines(textFilePath).Take(20); // Adjust the number of lines as needed
+            var readSettings = new MagickReadSettings { BackgroundColor = MagickColors.White, Width = 800, Height = 600 };
+            using (var image = new MagickImage($"caption:{string.Join("\n", text)}", readSettings))
+            {
+                image.Format = MagickFormat.Png;
+                image.Write(imageOutputPath);
+            }
+        }
+
+        public void ConvertToImage(string inputFilePath, string outputImagePath)
+        {
+            AsposeDocument doc = new AsposeDocument(inputFilePath);
+            AsposeDocument tempDoc = new AsposeDocument();
+
+            Section tempSection = new Section(tempDoc);
+            Body tempBody = new Body(tempDoc);
+
+            tempSection.AppendChild(tempBody);
+            tempDoc.AppendChild(tempSection);
+
+            NodeImporter importer = new NodeImporter(doc, tempDoc, ImportFormatMode.KeepSourceFormatting);
+
+            foreach (Paragraph para in doc.FirstSection.Body.Paragraphs)
+            {
+                Node clonedPara = importer.ImportNode(para, true);
+
+                tempBody.AppendChild(clonedPara);
+
+                if (para.ParagraphFormat.PageBreakBefore)
+                    break; 
+            }
+
+            tempDoc.Save(outputImagePath, SaveFormat.Png);
+        }
+    }
 }
 
 
