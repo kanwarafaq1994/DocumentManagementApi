@@ -30,7 +30,8 @@ namespace DocumentManagement.Data.Common.Extensions
                 UploadTime = document.UploadTime,
                 UserName = $"{document.UserDocument.FirstName} {document.UserDocument.LastName}",
                 NumberOfDownloads = document.NumberOfDownloads,
-                AbsoluteFilePath = Path.Combine(_fileServerRoot,document.FilePath),
+                AbsoluteFilePath = Path.Combine(_fileServerRoot, document.FilePath),
+                PreviewImagePath = document.PreviewImagePath,
                 UserId = document.UserId,
             };
         }
