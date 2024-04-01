@@ -24,7 +24,7 @@ namespace DocumentManagement.Data.Common
                     new Claim("id", user.Id.ToString()),
                     new Claim("email", user.Email)
                 }),
-                Expires = StaticDateTimeProvider.Now.AddHours(WebConstants.PasswordTokenTimeoutHours),
+                Expires = StaticDateTimeProvider.Now.AddHours(WebConstants.TokenTimeoutHours),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
