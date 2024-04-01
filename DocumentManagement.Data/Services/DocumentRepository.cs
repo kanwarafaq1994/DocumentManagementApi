@@ -59,7 +59,7 @@ namespace DocumentManagement.Data.Services
             }
             return docToDelete;
         }
-        public async Task<Document> SaveFile(Stream fileStream, string fileName, bool overwriteFile = false)
+        public async Task<(Document document, bool uploaded)> SaveFile(Stream fileStream, string fileName, bool overwriteFile = false)
         {
             string directory = "SealDocs";
 
@@ -68,8 +68,7 @@ namespace DocumentManagement.Data.Services
 
             if (File.Exists(fullPath) && !overwriteFile)
             {
-                throw new UserException(
-                    "The file already exists in this folder. Please rename the file and try again");
+                return (null, false);
             }
 
             var document = new Document()
@@ -107,7 +106,7 @@ namespace DocumentManagement.Data.Services
                 }
 
                 await _context.SaveChangesAsync();
-                return document;
+                return (document, true);
             }
             catch (Exception ex)
             {

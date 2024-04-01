@@ -1,12 +1,9 @@
 ﻿using DocumentManagement.Data.Common;
 using DocumentManagement.Data.Common.Extensions;
 using DocumentManagement.Data.Exceptions;
-using DocumentManagement.Data.Models;
 using DocumentManagement.Data.UnitsOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -26,7 +23,7 @@ namespace LogicApi.Controllers
         [HttpPost, DisableRequestSizeLimit]
         public async Task<ActionResult> UploadAsync(List<IFormFile> files)
         {
-            var invalidFileNames = new List<InfoDto>();
+            var fileStatusMessages = new List<InfoDto>();
             try
             {
                 foreach (var formFile in files)
@@ -34,33 +31,36 @@ namespace LogicApi.Controllers
                     var fileName = Path.GetFileName(formFile.FileName.Trim('"'));
                     if (!fileName.IsValidFileName())
                     {
-                        invalidFileNames.Add(new InfoDto(fileName + "is invalid"));
+                        fileStatusMessages.Add(new InfoDto(fileName + "is invalid"));
 
                         continue;
                     }
                     await using var stream = formFile.OpenReadStream();
 
-                    Document document;
+                    var (document, uploaded) = await _unitOfWork.documentRepository.SaveFile(
+                    formFile.OpenReadStream(),fileName);
 
-                    document = await _unitOfWork.documentRepository.SaveFile(
-                        stream,
-                        fileName);
+                    if (!uploaded)
+                    {
+                        // File already exists, add to invalid file names list or handle as desired
+                        fileStatusMessages.Add(new InfoDto(fileName + " is already uploaded"));
+                        continue;
+                    }
+
+                    // File was successfully uploaded, include in the response
+                    fileStatusMessages.Add(new InfoDto(fileName + " uploaded successfully"));
 
                     string previewImagePath = await _unitOfWork.documentRepository
                         .GeneratePreviewImage(document.FilePath, fileName);
 
-                    if(previewImagePath != null)
+                    if (previewImagePath != null)
                     {
                         document.PreviewImagePath = previewImagePath;
                         await _unitOfWork.SaveChangesAsync();
                     }
                 }
 
-                return Ok(invalidFileNames.Count switch
-                {
-                    0 => (object)new InfoDto("Document uploaded successfully!"),
-                    _ => invalidFileNames
-                });
+                return Ok(fileStatusMessages);
             }
             catch (UserException ex)
             {
@@ -74,10 +74,10 @@ namespace LogicApi.Controllers
             try
             {
                 var document = await _unitOfWork.documentRepository.Get(fileId);
-                if(document == null)
+                if (document == null)
                 {
                     return NotFound(new InfoDto("Document not found"));
-                }    
+                }
                 document.NumberOfDownloads++;
                 await _unitOfWork.SaveChangesAsync();
                 var content = await _unitOfWork.documentRepository.GetContentByte(document);
@@ -86,7 +86,7 @@ namespace LogicApi.Controllers
             }
             catch (UserException ex)
             {
-   
+
                 return StatusCode(500, new InfoDto(ex.Message));
             }
         }
@@ -113,7 +113,7 @@ namespace LogicApi.Controllers
             try
             {
                 var publishDocuments = await _unitOfWork.documentRepository.GetPublishedDocument();
-                if(publishDocuments == null || publishDocuments.Count == 0)
+                if (publishDocuments == null || publishDocuments.Count == 0)
                 {
                     return NotFound("Public Documents not found or it is already expired!");
                 }

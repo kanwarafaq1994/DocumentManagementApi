@@ -9,7 +9,7 @@ namespace DocumentManagement.Data.Repositories
     public interface IDocumentRepository : IRepository<Document>
 
     {
-        Task<Document> SaveFile(Stream fileStream, string fileName,bool overwriteFile = false);
+        Task<(Document document, bool uploaded)> SaveFile(Stream fileStream, string fileName, bool overwriteFile = false);
         Task<List<Document>> GetUserDocuments(int userId);
         Task<List<Document>> GetPublishedDocument();
         Task UpdatePublishDocsExpiry();
