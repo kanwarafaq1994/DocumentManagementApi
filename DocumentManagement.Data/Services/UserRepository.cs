@@ -32,8 +32,6 @@ namespace DocumentManagement.Data.Services
             _authContext = authContext;
         }
 
-
-
         /// <summary>
         /// Get User by id
         /// </summary>
