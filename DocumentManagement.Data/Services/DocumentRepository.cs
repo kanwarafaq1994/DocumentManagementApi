@@ -1,6 +1,7 @@
 ﻿using Aspose.Words;
 using DocumentManagement.Data.Common;
 using DocumentManagement.Data.Exceptions;
+using DocumentManagement.Data.Models;
 using DocumentManagement.Data.Repositories;
 using ImageMagick;
 using Microsoft.EntityFrameworkCore;
@@ -104,19 +105,28 @@ namespace DocumentManagement.Data.Services
         private async Task UpdateOrCreateDocumentEntry(Document document, string relativePath)
         {
             var existingDocument = await _context.Documents.FirstOrDefaultAsync(x => x.FilePath == relativePath);
+
             if (existingDocument != null)
             {
+                if (existingDocument.UserId != _authContext.UserId)
+                {
+                    throw new UserException("You do not have permission to upload it " +
+                                             "because this file belongs to another user");
+                }
+
                 existingDocument.FileSize = document.FileSize;
                 existingDocument.UploadTime = document.UploadTime;
                 await Update(existingDocument);
             }
             else
             {
+                // Document doesn't exist, so create a new one
                 await Add(document);
             }
 
             await _context.SaveChangesAsync();
         }
+
 
         private void HandleFileException(string fullPath, Exception ex)
         {
@@ -158,12 +168,16 @@ namespace DocumentManagement.Data.Services
         }
         public override Task<InfoDto> Validate(Document entity)
         {
-            throw new System.NotSupportedException();
+            throw new NotImplementedException();
         }
 
-        public async Task<List<Document>> GetUserDocuments(int userId)
+        public async Task<User> GetUserDocuments(int userId)
         {
-            return await _context.Documents.Where(u => u.UserId == userId).ToListAsync();
+            var userDocuments = await _context.Users
+                               .Include(d => d.Documents)
+                               .FirstOrDefaultAsync(u => u.Id == userId);
+
+            return userDocuments;
         }
 
         public async Task<Document> PublishDocument(int documentId)
@@ -293,7 +307,7 @@ namespace DocumentManagement.Data.Services
                 tempBody.AppendChild(clonedPara);
 
                 if (para.ParagraphFormat.PageBreakBefore)
-                    break; 
+                    break;
             }
 
             tempDoc.Save(outputImagePath, SaveFormat.Png);

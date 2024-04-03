@@ -10,7 +10,7 @@ namespace DocumentManagement.Data.Repositories
 
     {
         Task<(Document document, bool uploaded)> SaveFile(Stream fileStream, string fileName, bool overwriteFile = false);
-        Task<List<Document>> GetUserDocuments(int userId);
+        Task<User> GetUserDocuments(int userId);
         Task<List<Document>> GetPublishedDocument();
         Task UpdatePublishDocsExpiry();
         Task<Document> PublishDocument(int documentId);

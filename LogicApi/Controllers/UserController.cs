@@ -26,11 +26,12 @@ namespace LogicApi.Controllers
         {
             try
             {
+
                 var userDocuments = await _unitOfWork.documentRepository.GetUserDocuments(userId);
-                if (userDocuments == null || userDocuments.Count == 0) 
+                if (userDocuments == null) 
                     return NotFound(new InfoDto("Documents not found"));
 
-                return Ok(userDocuments.ToDtoArray());
+                return Ok(userDocuments.ToUserDocumentsDto());
             }
             catch (Exception ex)
             {

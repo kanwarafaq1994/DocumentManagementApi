@@ -3,6 +3,7 @@ using DocumentManagement.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace DocumentManagement.Data.Common.Extensions
 {
@@ -28,11 +29,24 @@ namespace DocumentManagement.Data.Common.Extensions
                 FileSize = document.FileSize,
                 FileName = Path.GetFileName(document.FilePath),
                 UploadTime = document.UploadTime,
-                UserName = $"{document.UserDocument.FirstName} {document.UserDocument.LastName}",
                 NumberOfDownloads = document.NumberOfDownloads,
                 AbsoluteFilePath = Path.Combine(_fileServerRoot, document.FilePath),
                 PreviewImagePath = document.PreviewImagePath,
                 UserId = document.UserId,
+            };
+        }
+
+        public static UserDto ToUserDocumentsDto(this User user)
+        {
+            return new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                UserName = $"{user.FirstName}{user.LastName}".ToLower(),
+                IsActive = user.IsActive,
+                Email = user.Email,
+                LastEditedByUserId = user.EditedBy,
+                Documents = user.Documents.Select(d => d.ToDto()).ToList()
             };
         }
 
