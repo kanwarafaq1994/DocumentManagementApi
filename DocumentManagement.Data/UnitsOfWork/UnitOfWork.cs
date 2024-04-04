@@ -11,27 +11,27 @@ namespace DocumentManagement.Data.UnitsOfWork
     public class UnitOfWork : IUnitOfWork
     {
 
-        private DocumentManagementContext _context;
-
+        private readonly DocumentManagementContext _context;
         private readonly IOptions<AppSettings> _appSettings;
-
+        private readonly IAuthContext _authContext;
         private readonly IPasswordHasher _passwordHasher;
 
-        public IUserRepository userRepository { get; }
+        public IUserRepository UserRepository { get; }
+        public IDocumentRepository DocumentRepository { get; }
+        public IAuthContext AuthContext => _authContext;
 
-        public IDocumentRepository documentRepository { get; }
-
-        public IAuthContext AuthContext { get; }
         public UnitOfWork(DocumentManagementContext context,
-            IOptions<AppSettings> appSettings, IPasswordHasher passwordHasher, 
-            IUserRepository userRepository, IAuthContext authContext)
+                          IOptions<AppSettings> appSettings,
+                          IAuthContext authContext,
+                          IPasswordHasher passwordHasher)
         {
             _context = context;
             _appSettings = appSettings;
-            AuthContext = authContext;
-            this.userRepository = userRepository;
-            documentRepository = new DocumentRepository(_appSettings.Value.FileServerRoot,AuthContext, _context);
+            _authContext = authContext;
             _passwordHasher = passwordHasher;
+
+            UserRepository = new UserRepository(context, _passwordHasher, _appSettings);
+            DocumentRepository = new DocumentRepository(appSettings.Value.FileServerRoot, authContext, context);
         }
 
         public async Task<int> SaveChangesAsync()

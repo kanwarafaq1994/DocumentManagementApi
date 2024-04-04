@@ -27,7 +27,7 @@ namespace LogicApi.Controllers
             try
             {
 
-                var userDocuments = await _unitOfWork.documentRepository.GetUserDocuments(userId);
+                var userDocuments = await _unitOfWork.DocumentRepository.GetUserDocuments(userId);
                 if (userDocuments == null) 
                     return NotFound(new InfoDto("Documents not found"));
 

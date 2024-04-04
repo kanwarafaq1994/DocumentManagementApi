@@ -20,16 +20,13 @@ namespace DocumentManagement.Data.Services
         private readonly DocumentManagementContext _context;
         private readonly IPasswordHasher _passwordHasher;
         private readonly AppSettings _appSettings;
-        private readonly IAuthContext _authContext;
         public UserRepository(DocumentManagementContext context,
             IPasswordHasher passwordHasher,
-            IOptions<AppSettings> appSettings,
-            IAuthContext authContext) : base(context)
+            IOptions<AppSettings> appSettings) : base(context)
         {
             _context = context;
             _passwordHasher = passwordHasher;
             _appSettings = appSettings.Value;
-            _authContext = authContext;
         }
 
         /// <summary>

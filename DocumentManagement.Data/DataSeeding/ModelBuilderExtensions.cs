@@ -8,7 +8,7 @@ namespace DocumentManagement.Data.DataSeeding
     {
         public static void Seed(this ModelBuilder modelBuilder)
         {
-            var password = "$2a$10$TWb.9jrYBS5psxE7mlMCeeBS44tdDXUntu.RVAKlbu8BZCwMmv.ly"; // LPARentenbank2021!
+            var password = "Uw7mRJuMS2SnOuiVRy4N6Q==:fp9FDMO1RWwYI520zNo82jIviCv8kdtabcifVxLhvzs="; // Test123!
 
             AddUser(modelBuilder, 1, "Kanwar", "Afaq", password, "test@test.de",true, 0 , true, new DateTime(2024, 4, 1), 1);
             AddUser(modelBuilder, 2, "Test", "User1", password, "test1@test.de", false, 0, true, new DateTime(2024, 4, 1), 1);

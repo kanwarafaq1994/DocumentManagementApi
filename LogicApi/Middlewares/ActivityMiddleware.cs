@@ -29,7 +29,7 @@ namespace LogicApi.Middlewares
                 {
                     throw new UnauthorizedAccessException("Token is logged out");
                 }
-                await userService.userRepository.UpdateActivityAsync(user.Id, StaticDateTimeProvider.Now);
+                await userService.UserRepository.UpdateActivityAsync(user.Id, StaticDateTimeProvider.Now);
                 await _next.Invoke(context);
                 return;
             }

@@ -30,6 +30,7 @@ namespace DocumentManagement.Data.Common.Extensions
                 FileName = Path.GetFileName(document.FilePath),
                 UploadTime = document.UploadTime,
                 NumberOfDownloads = document.NumberOfDownloads,
+                UserName = $"{document.UserDocument.FirstName}{document.UserDocument.LastName}".ToLower(),
                 AbsoluteFilePath = Path.Combine(_fileServerRoot, document.FilePath),
                 PreviewImagePath = document.PreviewImagePath,
                 UserId = document.UserId,

@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.34601.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogicApi", "LogicApi\LogicApi.csproj", "{DF6BC986-77B1-424B-8E7C-2D5B2DC1A2BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentManagement.Data", "DocumentManagement.Data\DocumentManagement.Data.csproj", "{DA75C35A-E7E3-4EEE-B39A-C86BEF1E6C6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentManagement.Data", "DocumentManagement.Data\DocumentManagement.Data.csproj", "{DA75C35A-E7E3-4EEE-B39A-C86BEF1E6C6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogicApi.Test", "LogicApi.Test\LogicApi.Test.csproj", "{35D6506A-3FE7-4C85-B0EA-9F91108E5514}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{DA75C35A-E7E3-4EEE-B39A-C86BEF1E6C6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA75C35A-E7E3-4EEE-B39A-C86BEF1E6C6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA75C35A-E7E3-4EEE-B39A-C86BEF1E6C6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35D6506A-3FE7-4C85-B0EA-9F91108E5514}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35D6506A-3FE7-4C85-B0EA-9F91108E5514}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35D6506A-3FE7-4C85-B0EA-9F91108E5514}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35D6506A-3FE7-4C85-B0EA-9F91108E5514}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

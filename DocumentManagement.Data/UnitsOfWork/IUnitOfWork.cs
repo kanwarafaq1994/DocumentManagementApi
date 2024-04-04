@@ -9,8 +9,8 @@ namespace DocumentManagement.Data.UnitsOfWork
 {
      public interface IUnitOfWork
     {
-        public IUserRepository userRepository { get; }
-        public IDocumentRepository documentRepository { get; }
+        public IUserRepository UserRepository { get; }
+        public IDocumentRepository DocumentRepository { get; }
         public Task<int> SaveChangesAsync();
         public IDbContextTransaction BeginTransaction();
     }

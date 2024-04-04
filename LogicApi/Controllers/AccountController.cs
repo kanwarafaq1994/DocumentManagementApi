@@ -31,7 +31,7 @@ namespace LogicApi.Controllers
         {
             try
             {
-                var loginResponse = await _unitOfWork.userRepository.CreateUserSession(loginData);
+                var loginResponse = await _unitOfWork.UserRepository.CreateUserSession(loginData);
 
                 if (loginResponse.Token == null)
                 {
@@ -55,7 +55,7 @@ namespace LogicApi.Controllers
                     // ActivityMiddleWare is not attached to AccountrController so that a user can login.
                     var token = HttpContext.GetAuthToken();
                     var user = _attachContext.AttachUserToContext(HttpContext, _unitOfWork, token);
-                    await _unitOfWork.userRepository.UpdateActivityAsync(user.Id, null);
+                    await _unitOfWork.UserRepository.UpdateActivityAsync(user.Id, null);
                 }
                 catch {  }
                 HttpContext.Session.Clear();
@@ -78,7 +78,7 @@ namespace LogicApi.Controllers
                     return BadRequest(new InfoDto("Email address and confirm Email address must match."));
                 }
                 
-                var userErrors = await _unitOfWork.userRepository.Validate(registrationDto.ToUser());
+                var userErrors = await _unitOfWork.UserRepository.Validate(registrationDto.ToUser());
 
                 if (userErrors.Message.Count > 0)
                 {
@@ -87,7 +87,7 @@ namespace LogicApi.Controllers
 
                 var initialUser = registrationDto.ToUser();
                 initialUser.PasswordHash = _passwordHasher.HashPassword(initialUser.PasswordHash);
-                await _unitOfWork.userRepository.Add(initialUser);
+                await _unitOfWork.UserRepository.Add(initialUser);
                 await _unitOfWork.SaveChangesAsync();
                 return Ok(new InfoDto("Registration successful."));
             }

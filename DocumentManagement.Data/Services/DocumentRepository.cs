@@ -219,7 +219,7 @@ namespace DocumentManagement.Data.Services
         {
             await UpdatePublishDocsExpiry();
 
-            var publishedDocs = await _context.Documents
+            var publishedDocs = await _context.Documents.Include(d => d.UserDocument)
                                                .Where(d => d.IsDocumentShared && !d.IsExpired)
                                                .ToListAsync();
 

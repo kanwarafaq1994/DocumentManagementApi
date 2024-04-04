@@ -41,7 +41,7 @@ namespace LogicApi.Controllers
                     {
                         using (var stream = formFile.OpenReadStream())
                         {
-                            var (document, uploaded) = await _unitOfWork.documentRepository.SaveFile(stream, fileName);
+                            var (document, uploaded) = await _unitOfWork.DocumentRepository.SaveFile(stream, fileName);
 
                             if (!uploaded)
                             {
@@ -51,7 +51,7 @@ namespace LogicApi.Controllers
                             {
                                 fileStatusMessages.Add(new InfoDto(fileName + " uploaded successfully"));
 
-                                string previewImagePath = await _unitOfWork.documentRepository.GeneratePreviewImage(document.FilePath, fileName);
+                                string previewImagePath = await _unitOfWork.DocumentRepository.GeneratePreviewImage(document.FilePath, fileName);
 
                                 if (previewImagePath != null)
                                 {
@@ -88,13 +88,13 @@ namespace LogicApi.Controllers
         {
             try
             {
-                var document = await _unitOfWork.documentRepository.Get(fileId);
+                var document = await _unitOfWork.DocumentRepository.Get(fileId);
                 if (document == null)
                 {
                     return NotFound(new InfoDto("Document not found"));
                 }
                 document.NumberOfDownloads++;
-                var content = await _unitOfWork.documentRepository.GetContentByte(document);
+                var content = await _unitOfWork.DocumentRepository.GetContentByte(document);
                 var contentType = MimeMapping.MimeUtility.GetMimeMapping($"export{Path.GetExtension(document.FilePath)}");
                 await _unitOfWork.SaveChangesAsync();
                 return File(content, contentType, Path.GetFileName(document.FilePath));
@@ -111,7 +111,7 @@ namespace LogicApi.Controllers
         {
             try
             {
-                var publishDocument = await _unitOfWork.documentRepository.PublishDocument(documentId);
+                var publishDocument = await _unitOfWork.DocumentRepository.PublishDocument(documentId);
                 await _unitOfWork.SaveChangesAsync();
                 return Ok(new InfoDto("Document Published successfully"));
             }
@@ -127,7 +127,7 @@ namespace LogicApi.Controllers
         {
             try
             {
-                var publishDocuments = await _unitOfWork.documentRepository.GetPublishedDocument();
+                var publishDocuments = await _unitOfWork.DocumentRepository.GetPublishedDocument();
                 if (publishDocuments == null || publishDocuments.Count == 0)
                 {
                     return NotFound("Public Documents not found or it is already expired!");
@@ -146,7 +146,7 @@ namespace LogicApi.Controllers
         {
             try
             {
-                await _unitOfWork.documentRepository.Delete(fileId);
+                await _unitOfWork.DocumentRepository.Delete(fileId);
                 return Ok(new InfoDto("Document Deleted Successfully!"));
             }
             catch (UserException ex)
